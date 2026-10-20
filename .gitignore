@@ -21,4 +21,5 @@ teledrive_state.json
 teledrive.js
 CHANGES.md
 *.zip
+bin/
 
