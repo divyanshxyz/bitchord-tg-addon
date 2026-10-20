@@ -118,6 +118,12 @@ function readEnvMap() {
       }
     }
   }
+  // Fall back to process.env for Docker / Render / cloud deployments without a physical .env file
+  for (const [key, val] of Object.entries(process.env)) {
+    if (val && !map[key]) {
+      map[key] = val;
+    }
+  }
   return map;
 }
 
@@ -155,12 +161,18 @@ function writeEnvKeys(updates) {
     }
   }
 
-  fs.writeFileSync(envPath, newLines.join('\n').trim() + '\n', 'utf-8');
+  try {
+    fs.writeFileSync(envPath, newLines.join('\n').trim() + '\n', 'utf-8');
+  } catch (_) {}
 }
 
 function isConfigured() {
   const env = readEnvMap();
-  return Boolean(env.TELEGRAM_API_ID && env.TELEGRAM_API_HASH && env.TELEGRAM_SESSION_STRING && env.TELEGRAM_CHANNEL);
+  const apiId = env.TELEGRAM_API_ID || process.env.TELEGRAM_API_ID;
+  const apiHash = env.TELEGRAM_API_HASH || process.env.TELEGRAM_API_HASH;
+  const session = env.TELEGRAM_SESSION_STRING || process.env.TELEGRAM_SESSION_STRING;
+  const channel = env.TELEGRAM_CHANNEL || process.env.TELEGRAM_CHANNEL;
+  return Boolean(apiId && apiHash && session && channel);
 }
 
 function clearActiveSetup() {
